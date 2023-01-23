@@ -16,10 +16,12 @@ struct ContentView: View {
     let days: [String] = ["TUE", "WED", "THU", "FRI", "SAT"]
     let temperatures: [Int] = [3, -2, -8, -14, -9]
     let symbols: [String] = ["wind", "snowflake", "snowflake", "thermometer.snowflake", "cloud.fill"]
+    let backgroundDarkBlue: Color = Color(red: 48/255, green: 70/255, blue: 140/220)
+    let backgroundLightBlue: Color = Color(red: 157/255, green: 202/255, blue: 240/220)
     
     var body: some View {
         ZStack {
-            BackgroundView()
+            BackgroundView(backgroundDarkBlue: backgroundDarkBlue, backgroundLightBlue: backgroundLightBlue, backgroundNightDarkBlue: <#Color#>, backgroundNightLightBlue: <#Color#>)
             VStack(spacing: 4) {
                 Text("Stockholm")
                     .frame(width: UIScreen.main.bounds.width-64, height: 50, alignment: .center)
@@ -102,8 +104,11 @@ struct ForecastDayView: View {
 }
 
 struct BackgroundView: View {
-    let backgroundDarkBlue: Color = Color(red: 48/255, green: 70/255, blue: 140/220)
-    let backgroundLightBlue: Color = Color(red: 157/255, green: 202/255, blue: 240/220)
+    let backgroundDarkBlue: Color
+    let backgroundLightBlue: Color
+    let backgroundNightDarkBlue: Color
+    let backgroundNightLightBlue: Color
+
     var body: some View {
         LinearGradient(gradient: Gradient(colors: [backgroundDarkBlue, backgroundLightBlue]),
                        startPoint: .topLeading,
