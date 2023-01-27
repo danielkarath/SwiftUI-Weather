@@ -18,40 +18,18 @@ struct ContentView: View {
     let symbols: [String] = ["wind", "snowflake", "snowflake", "thermometer.snowflake", "cloud.fill"]
     let backgroundDarkBlue: Color = Color(red: 48/255, green: 70/255, blue: 140/220)
     let backgroundLightBlue: Color = Color(red: 157/255, green: 202/255, blue: 240/220)
+    let backgroundNightDarkBlue: Color = Color(red: 18/255, green: 40/255, blue: 110/220)
+    let backgroundNightLightBlue: Color = Color(red: 77/255, green: 122/255, blue: 170/220)
     
     var body: some View {
         ZStack {
-            BackgroundView(backgroundDarkBlue: backgroundDarkBlue, backgroundLightBlue: backgroundLightBlue, backgroundNightDarkBlue: <#Color#>, backgroundNightLightBlue: <#Color#>)
+            BackgroundView(backgroundDarkBlue: backgroundDarkBlue, backgroundLightBlue: backgroundLightBlue, backgroundNightDarkBlue: backgroundNightDarkBlue, backgroundNightLightBlue: backgroundNightLightBlue)
             VStack(spacing: 4) {
-                Text("Stockholm")
-                    .frame(width: UIScreen.main.bounds.width-64, height: 50, alignment: .center)
-                    .font(.system(size: largeFontSize, weight: .medium, design: .default))
-                    .foregroundColor(.white)
-                    .padding(.top, 32)
-                Image(systemName: "cloud.sun.fill")
-                    .renderingMode(.original)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: UIScreen.main.bounds.width*0.40, height: UIScreen.main.bounds.width*0.40)
-                    .padding(.top, 4)
-                Text("2°")
-                    .frame(width: UIScreen.main.bounds.width-64, height: 50, alignment: .center)
-                    .font(.system(size: ultraLargeFontSize, weight: .medium, design: .default))
-                    .foregroundColor(.white)
-                    .padding(.top, 32)
+                CityTextView(cityName: "Stockholm")
+                MainWeatherStatusView(imageName: "cloud.sun.fill", temperature: 2)
                 ForecastDayView(days: days, temperatures: temperatures, symbols: symbols)
                 Spacer()
-                
-                Button {
-                    print("tapped")
-                } label: {
-                    Text("Change day time")
-                        .frame(width: UIScreen.main.bounds.width-64, height: (UIScreen.main.bounds.width-64)/6)
-                        .font(.system(size: basicFontSize, weight: .bold, design: .default))
-                        .background(Color.white)
-                        .cornerRadius(8)
-                        .padding(.bottom, 16)
-                }
+                WeatherButton(title: "Change day time", backgroundColor: .white, textColor: .blue)
                 
             }
             
@@ -108,11 +86,43 @@ struct BackgroundView: View {
     let backgroundLightBlue: Color
     let backgroundNightDarkBlue: Color
     let backgroundNightLightBlue: Color
+    
+    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
-        LinearGradient(gradient: Gradient(colors: [backgroundDarkBlue, backgroundLightBlue]),
+        LinearGradient(gradient: Gradient(colors: colorScheme == .light ? [backgroundDarkBlue, backgroundLightBlue] : [backgroundNightDarkBlue, backgroundNightLightBlue]),
                        startPoint: .topLeading,
                        endPoint: .bottomTrailing)
         .edgesIgnoringSafeArea(.all)
+    }
+}
+
+struct CityTextView: View {
+    var cityName: String
+    var body: some View {
+        Text(cityName)
+            .frame(width: UIScreen.main.bounds.width-64, height: 50, alignment: .center)
+            .font(.system(size: largeFontSize, weight: .medium, design: .default))
+            .foregroundColor(.white)
+            .padding(.top, 32)
+    }
+}
+
+struct MainWeatherStatusView: View {
+    var imageName: String
+    var temperature: Int
+    
+    var body: some View {
+        Image(systemName: imageName)
+            .renderingMode(.original)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: UIScreen.main.bounds.width*0.40, height: UIScreen.main.bounds.width*0.40)
+            .padding(.top, 4)
+        Text("\(temperature)°")
+            .frame(width: UIScreen.main.bounds.width-64, height: 50, alignment: .center)
+            .font(.system(size: ultraLargeFontSize, weight: .medium, design: .default))
+            .foregroundColor(.white)
+            .padding(.top, 32)
     }
 }
