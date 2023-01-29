@@ -7,38 +7,68 @@
 
 import SwiftUI
 
-let basicFontSize: CGFloat = UIScreen.main.bounds.width/18
-let largeFontSize: CGFloat = UIScreen.main.bounds.width/12
-let ultraLargeFontSize: CGFloat = UIScreen.main.bounds.width/6
-
 struct ContentView: View {
+    
+    @State private var isNight = false
+    @State private var temperature: String = "Loading..."
     
     let days: [String] = ["TUE", "WED", "THU", "FRI", "SAT"]
     let temperatures: [Int] = [3, -2, -8, -14, -9]
     let symbols: [String] = ["wind", "snowflake", "snowflake", "thermometer.snowflake", "cloud.fill"]
-    let backgroundDarkBlue: Color = Color(red: 48/255, green: 70/255, blue: 140/220)
-    let backgroundLightBlue: Color = Color(red: 157/255, green: 202/255, blue: 240/220)
-    let backgroundNightDarkBlue: Color = Color(red: 18/255, green: 40/255, blue: 110/220)
-    let backgroundNightLightBlue: Color = Color(red: 77/255, green: 122/255, blue: 170/220)
-    
+        
     var body: some View {
         ZStack {
-            BackgroundView(backgroundDarkBlue: backgroundDarkBlue, backgroundLightBlue: backgroundLightBlue, backgroundNightDarkBlue: backgroundNightDarkBlue, backgroundNightLightBlue: backgroundNightLightBlue)
+            BackgroundView(backgroundDarkBlue: MyConstants.shared.backgroundDarkBlue, backgroundLightBlue: MyConstants.shared.backgroundLightBlue, backgroundNightDarkBlue: MyConstants.shared.backgroundNightDarkBlue, backgroundNightLightBlue: MyConstants.shared.backgroundNightLightBlue, isNightMode: isNight)
             VStack(spacing: 4) {
                 CityTextView(cityName: "Stockholm")
-                MainWeatherStatusView(imageName: "cloud.sun.fill", temperature: 2)
+                MainWeatherStatusView(imageName: isNight ? "cloud.sun.fill" : "cloud.moon.fill", temperature: temperature)
                 ForecastDayView(days: days, temperatures: temperatures, symbols: symbols)
                 Spacer()
-                WeatherButton(title: "Change day time", backgroundColor: .white, textColor: .blue)
+                //WeatherButton(title: "Change day time", backgroundColor: .white, textColor: .blue)
+                Button {
+                    print("tapped button to toggle apperance ")
+                    //@Environment(\.colorScheme) var colorScheme
+                    isNight.toggle()
+                } label: {
+                    Text("Change day time")
+                        .frame(width: UIScreen.main.bounds.width-64, height: (UIScreen.main.bounds.width-64)/6)
+                        .font(.system(size: MyConstants.shared.basicFontSize, weight: .bold, design: .default))
+                        .foregroundColor(.blue)
+                        .background(.white)
+                        .cornerRadius(8)
+                        .padding(.bottom, 16)
+                }
                 
             }
             
+        }.onAppear {
+            fetchTemperature()
         }
     }
     
-    private func setupDaysOfWeek() {
-        
-    }
+    func fetchTemperature() {
+        print("fetchTemperature 1")
+            let API_KEY = INSERT API KEY HERE
+            let city = "Stockholm"
+            let url = URL(string: "https://api.openweathermap.org/data/2.5/weather?q=\(city)&appid=\(API_KEY)&units=metric")!
+            
+            URLSession.shared.dataTask(with: url) { data, response, error in
+                if let data = data {
+                    print("fetchTemperature 2")
+                    let weather = try? JSONDecoder().decode(WeatherData.self, from: data)
+                    if let weather = weather {
+                        print("fetchTemperature 3")
+                        let temperature = Int(floor(weather.main.temp))
+                        DispatchQueue.main.async {
+                            self.temperature = "\(temperature)°C"
+                            print("temperature: \(self.temperature)")
+                        }
+                    } else {
+                        print("Failed to decode weather data.")
+                    }
+                }
+            }.resume()
+        }
     
 }
 
@@ -57,19 +87,20 @@ struct ForecastDayView: View {
             ForEach(0..<days.count, id: \.self) { index in
                 VStack(spacing: 2) {
                     Text(days[index])
-                        .font(.system(size: basicFontSize, weight: .regular, design: .default))
+                        .font(.system(size: MyConstants.shared.basicFontSize, weight: .regular, design: .default))
                         .frame(width: UIScreen.main.bounds.width*0.16, height: UIScreen.main.bounds.width*0.16, alignment: .center)
                         .multilineTextAlignment(.center)
                         .foregroundColor(.white)
                         .padding(.top, 2)
                     Image(systemName: symbols[index])
-                        .renderingMode(.original)
+                        .symbolRenderingMode(.palette)
                         .resizable()
+                        .foregroundStyle(.white, .cyan, .gray)
                         .aspectRatio(contentMode: .fit)
                         .frame(width: UIScreen.main.bounds.width*0.12, height: UIScreen.main.bounds.width*0.12)
                         .padding(.top, 4)
                     Text("\(temperatures[index])°")
-                        .font(.system(size: basicFontSize, weight: .regular, design: .default))
+                        .font(.system(size: MyConstants.shared.basicFontSize, weight: .regular, design: .default))
                         .frame(width: UIScreen.main.bounds.width*0.16, height: UIScreen.main.bounds.width*0.16, alignment: .center)
                         .multilineTextAlignment(.center)
                         .foregroundColor(.white)
@@ -86,11 +117,12 @@ struct BackgroundView: View {
     let backgroundLightBlue: Color
     let backgroundNightDarkBlue: Color
     let backgroundNightLightBlue: Color
+    var isNightMode: Bool
     
-    @Environment(\.colorScheme) var colorScheme
+    //@Environment(\.colorScheme) var colorScheme
 
     var body: some View {
-        LinearGradient(gradient: Gradient(colors: colorScheme == .light ? [backgroundDarkBlue, backgroundLightBlue] : [backgroundNightDarkBlue, backgroundNightLightBlue]),
+        LinearGradient(gradient: Gradient(colors: isNightMode ? [backgroundDarkBlue, backgroundLightBlue] : [backgroundNightDarkBlue, backgroundNightLightBlue]),
                        startPoint: .topLeading,
                        endPoint: .bottomTrailing)
         .edgesIgnoringSafeArea(.all)
@@ -102,7 +134,7 @@ struct CityTextView: View {
     var body: some View {
         Text(cityName)
             .frame(width: UIScreen.main.bounds.width-64, height: 50, alignment: .center)
-            .font(.system(size: largeFontSize, weight: .medium, design: .default))
+            .font(.system(size: MyConstants.shared.largeFontSize, weight: .medium, design: .default))
             .foregroundColor(.white)
             .padding(.top, 32)
     }
@@ -110,7 +142,7 @@ struct CityTextView: View {
 
 struct MainWeatherStatusView: View {
     var imageName: String
-    var temperature: Int
+    var temperature: String
     
     var body: some View {
         Image(systemName: imageName)
@@ -119,10 +151,18 @@ struct MainWeatherStatusView: View {
             .aspectRatio(contentMode: .fit)
             .frame(width: UIScreen.main.bounds.width*0.40, height: UIScreen.main.bounds.width*0.40)
             .padding(.top, 4)
-        Text("\(temperature)°")
+        Text("\(temperature)")
             .frame(width: UIScreen.main.bounds.width-64, height: 50, alignment: .center)
-            .font(.system(size: ultraLargeFontSize, weight: .medium, design: .default))
+            .font(.system(size: MyConstants.shared.ultraLargeFontSize, weight: .medium, design: .default))
             .foregroundColor(.white)
             .padding(.top, 32)
     }
+}
+
+struct WeatherData: Codable {
+    
+    struct Main: Codable {
+        let temp: Double
+    }
+    let main: Main
 }

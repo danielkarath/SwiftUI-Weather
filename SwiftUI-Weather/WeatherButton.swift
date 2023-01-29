@@ -18,7 +18,7 @@ struct WeatherButton: View {
         } label: {
             Text("Change day time")
                 .frame(width: UIScreen.main.bounds.width-64, height: (UIScreen.main.bounds.width-64)/6)
-                .font(.system(size: basicFontSize, weight: .bold, design: .default))
+                .font(.system(size: MyConstants.shared.basicFontSize, weight: .bold, design: .default))
                 .foregroundColor(textColor)
                 .background(backgroundColor)
                 .cornerRadius(8)
